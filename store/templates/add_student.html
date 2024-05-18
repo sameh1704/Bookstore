@@ -66,15 +66,14 @@
             },
             dataType: 'json',
             success: function (data) {
-                var classLevels = JSON.parse(data);
                 var classLevelSelect = $('#id_class_level');
                 classLevelSelect.empty();
                 var sectionSelect = $('#id_section');
                 sectionSelect.empty();
-                classLevels.forEach(function (item) {
+                data.class_levels.forEach(function (class_level) {
                     classLevelSelect.append($('<option>', {
-                        value: item.pk,
-                        text: item.fields.name
+                        value: class_level.id,
+                        text: class_level.name
                     }));
                 });
             }
@@ -90,13 +89,12 @@
             },
             dataType: 'json',
             success: function (data) {
-                var sections = JSON.parse(data);
                 var sectionSelect = $('#id_section');
                 sectionSelect.empty();
-                sections.forEach(function (item) {
+                data.sections.forEach(function (section) {
                     sectionSelect.append($('<option>', {
-                        value: item.pk,
-                        text: item.fields.name
+                        value: section.id,
+                        text: section.name
                     }));
                 });
             }

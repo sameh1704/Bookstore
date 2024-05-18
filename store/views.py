@@ -112,26 +112,47 @@ def export_students(request):
     df.to_excel(response, index=False)
 
     return response
-from django.core import serializers
 
-from django.core import serializers
+
+
+from django.http import JsonResponse
+from django.db.models import Prefetch
+
+from django.http import JsonResponse
+from django.db.models import Prefetch
 
 def get_class_student(request):
     stage_id = request.GET.get('stage_id')
     class_level_id = request.GET.get('class_level_id')
 
-    if stage_id and class_level_id:
+    data = {}
+
+    if stage_id:
+        stage = Stage.objects.get(pk=stage_id)
+        class_levels = ClassLevel.objects.filter(stage=stage).prefetch_related(
+            Prefetch('classroom_set', queryset=Classroom.objects.all())
+        )
+        data['class_levels'] = [
+            {
+                'id': class_level.id,
+                'name': class_level.name,
+                'sections': [
+                    {'id': section.id, 'name': section.name}
+                    for section in class_level.classroom_set.all()
+                ]
+            }
+            for class_level in class_levels
+        ]
+
+    elif class_level_id:
         class_level = ClassLevel.objects.get(pk=class_level_id)
-        sections = Classroom.objects.filter(class_levels=class_level, stage_id=stage_id)
-        data = serializers.serialize('json', sections, fields=('name'))
-        return JsonResponse(data, safe=False)
+        sections = class_level.classroom_set.all()
+        data['sections'] = [
+            {'id': section.id, 'name': section.name}
+            for section in sections
+        ]
 
-    elif stage_id:
-        class_levels = ClassLevel.objects.filter(stage_id=stage_id)
-        data = serializers.serialize('json', class_levels)
-        return JsonResponse(data, safe=False)
-
-    return JsonResponse([], safe=False)
+    return JsonResponse(data)
 ##########################################################################################################################
 
 
